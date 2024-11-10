@@ -14,6 +14,11 @@ import { LoginComponent } from './login/login.component';
 import { AuthGuard } from './auth.guard';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { OrderModule } from 'ngx-order-pipe';
+import { SidebarComponent } from './sidebar/sidebar.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
+import { PropertiesComponent } from './properties/properties.component';
+import { AddPropertyComponent } from './add-property/add-property.component';
+import { MyListingsComponent } from './my-listings/my-listings.component';
 
 
 
@@ -24,6 +29,11 @@ import { OrderModule } from 'ngx-order-pipe';
     EditComponent,
     RegisterComponent,
     LoginComponent,
+    SidebarComponent,
+    DashboardComponent,
+    PropertiesComponent,
+    AddPropertyComponent,
+    MyListingsComponent,
   ],
   imports: [
     BrowserModule,
@@ -33,7 +43,7 @@ import { OrderModule } from 'ngx-order-pipe';
     BrowserAnimationsModule,
     NgxSpinnerModule,
     NgbModule,
-    OrderModule
+    OrderModule,
   ],
   providers: [AuthGuard],
   bootstrap: [AppComponent],

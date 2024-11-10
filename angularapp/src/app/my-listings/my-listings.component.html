@@ -1,0 +1,9 @@
+<div class="my-listings">
+    <h1>My Listings</h1>
+    <div *ngFor="let property of myProperties">
+        <h2>{{ property.title }}</h2>
+        <p>Price: {{ property.price }}</p>
+        <p>Description: {{ property.description }}</p>
+        <button (click)="deleteProperty(property.id)">Delete</button>
+    </div>
+</div>

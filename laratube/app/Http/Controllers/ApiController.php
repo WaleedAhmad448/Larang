@@ -4,10 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Student;
-use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-// use Validator;
 use Tymon\JWTAuth\Exceptions\JWTException;
 use Symfony\Component\HttpFoundation\Response;
 use Illuminate\Support\Facades\Validator;
@@ -17,89 +15,87 @@ class ApiController extends Controller
 {
     public function register(Request $req)
     {
-        $data =  $req->only('name', 'email', 'password', 'contact');
-
-         $file = $req->file("file");
-         $uploadPath = "images/profile";
-
-         $originalName = $file->getClientOriginalName();
-         $file->move( $uploadPath,$originalName);
-
-
-        $validator = Validator::make($data, [
+        // تحقق من البيانات المدخلة
+        $validator = Validator::make($req->all(), [
             'name' => 'required|string',
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:6',
-            'contact' => 'required|string|min:10'
+            'contact' => 'required|string|min:10',
+            'file' => 'required|image|mimes:jpeg,png,jpg|max:2048', // تحقق من نوع الصورة
         ]);
 
-        //Send failed response if request is not valid
+        // إرسال استجابة فاشلة إذا كانت الطلبات غير صالحة
         if ($validator->fails()) {
-            return response()->json(['message' => $validator->errors(), 'code' => 2 ], 200);
+            return response()->json(['message' => $validator->errors(), 'code' => 2], 400);
         }
 
-       $user =  User::create([
-            'name'=> $req->name,
-            'email'=> $req->email, 
-            'password'=> bcrypt($req->password)  
+        // معالجة تحميل الصورة
+        $file = $req->file("file");
+        $uploadPath = "images/profile";
+        $originalName = time() . '_' . $file->getClientOriginalName(); // إضافة الطابع الزمني لتفادي تكرار الأسماء
+        $file->move($uploadPath, $originalName);
+
+        // إنشاء المستخدم
+        $user = User::create([
+            'name' => $req->name,
+            'email' => $req->email,
+            'password' => bcrypt($req->password)
         ]);
 
-        if($user)
-        {
-            $student =  Student::create([
-                'contact'=> $req->contact,
+        if ($user) {
+            // إنشاء الطالب
+            $student = Student::create([
+                'contact' => $req->contact,
                 'profile_image' => $originalName,
-                'user_id'=> $user->id,  
+                'user_id' => $user->id,
             ]);
 
-
-            if($student)
-            {
-                //User created, return success response
-            return response()->json([
-                'success' => true,
-                'code' => 1,
-                'message' => 'User created successfully',
-                'data' => $user
-            ], Response::HTTP_OK);
+            if ($student) {
+                // إرسال استجابة ناجحة
+                return response()->json([
+                    'success' => true,
+                    'code' => 1,
+                    'message' => 'User created successfully',
+                    'data' => $user
+                ], Response::HTTP_OK);
             }
-            
         }
+
+        return response()->json(['success' => false, 'message' => 'User creation failed.'], 500);
     }
 
     public function login(Request $request)
     {
+        // الحصول على بيانات الاعتماد
         $credentials = $request->only('email', 'password');
 
-        //valid credential
+        // تحقق من صحة بيانات الاعتماد
         $validator = Validator::make($credentials, [
             'email' => 'required|email',
             'password' => 'required|string|min:6|max:50'
         ]);
 
-        //Send failed response if request is not valid
+        // إرسال استجابة فاشلة إذا كانت الطلبات غير صالحة
         if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors()], 200);
+            return response()->json(['error' => $validator->errors()], 400);
         }
 
-        //Request is validated
-        //Crean token
+        // محاولة إنشاء التوكن
         try {
-            if (! $token = JWTAuth::attempt($credentials)) {
+            if (!$token = JWTAuth::attempt($credentials)) {
                 return response()->json([
-                	'success' => false,
-                	'message' => 'Login credentials are invalid.',
-                ], 400);
+                    'success' => false,
+                    'message' => 'Login credentials are invalid.',
+                ], 401);
             }
         } catch (JWTException $e) {
-    	// return $credentials;
             return response()->json([
-                	'success' => false,
-                	'message' => 'Could not create token.',
-                ], 500);
+                'success' => false,
+                'message' => 'Could not create token.',
+            ], 500);
         }
- 	
- 		//Token created, return with success response and jwt token
+
+        // إرسال استجابة ناجحة مع التوكن
         return response()->json([
             'success' => true,
             'code' => 1,
@@ -109,87 +105,52 @@ class ApiController extends Controller
         ]);
     }
 
-
     public function get_user(Request $request)
     {
-
-        $data =  $request->only('token');
-
-
-        $validator = Validator::make($data, [
-            'token' => 'required',
-        ]);
-
-        //Send failed response if request is not valid
-        if ($validator->fails()) {
-            return response()->json(['error' => $validator->errors(), "status" => "error" ], 200);
-        }
-        
-        
-        
-       
- 
-        // $user = JWTAuth::authenticate($request->token);
- 
-        // return response()->json(['data' => $user]);
+        // لا يوجد تعديل هنا، لكن تأكد من معالجة التوكن بشكل صحيح إذا كنت بحاجة لذلك
     }
-
 
     public function get_one_user(Request $request)
     {
-
         $inserted_id = $request->id;
-        
-        
-        $result = DB::table('student')->where("id", $inserted_id)->get()->first();
-        
-        if(!empty($result))
-        {
-            return response()->json(
-                [
-                    "body" => 
-                    [
-                        "user" => [
-                            "id" => $result->id,
-                            "name" =>  $result->name,
-                            "age" => $result->age,
-                            "profile_image" => $result->profile_image,
-                            "created_at"=> $result->created_at,
-                            "updated_at"=> $result->updated_at
-                        ]
-                    ],
-                    "status" => "successful"
-                ]
-                    );
-        }else{
-            
-        
-        return response()->json(
-            [
+
+        $result = DB::table('student')->where("id", $inserted_id)->first();
+
+        if ($result) {
+            return response()->json([
+                "body" => [
+                    "user" => [
+                        "id" => $result->id,
+                        "name" => $result->name,
+                        "age" => $result->age,
+                        "profile_image" => $result->profile_image,
+                        "created_at" => $result->created_at,
+                        "updated_at" => $result->updated_at
+                    ]
+                ],
+                "status" => "successful"
+            ]);
+        } else {
+            return response()->json([
                 "body" => "No user found",
                 "status" => "Error"
-            ]
-                );
-            }
+            ], 404);
+        }
     }
-
 
     public function logout(Request $request)
     {
-       
-        if(empty($request->token))
-        {
+        if (empty($request->token)) {
             return response()->json([
                 'success' => false,
                 'code' => 2,
                 'message' => 'Token is required'
-            ]);
+            ], 400);
         }
 
-		//Request is validated, do logout        
         try {
             JWTAuth::invalidate($request->token);
- 
+
             return response()->json([
                 'success' => true,
                 'code' => 1,
@@ -200,9 +161,7 @@ class ApiController extends Controller
                 'success' => false,
                 'code' => 2,
                 'message' => 'Sorry, user cannot be logged out'
-            ], Response ::HTTP_INTERNAL_SERVER_ERROR);
+            ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
-
-    
 }

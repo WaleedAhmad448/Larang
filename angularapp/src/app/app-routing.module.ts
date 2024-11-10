@@ -5,6 +5,10 @@ import { EditComponent } from './edit/edit.component';
 import { LoginComponent } from './login/login.component';
 import { RegisterComponent } from './register/register.component';
 import { UserComponent } from './user/user.component';
+import { DashboardComponent } from './dashboard/dashboard.component';
+import { PropertiesComponent } from './properties/properties.component';
+import { AddPropertyComponent } from './add-property/add-property.component';
+import { MyListingsComponent } from './my-listings/my-listings.component';
 
 const routes: Routes = [
   {
@@ -26,7 +30,12 @@ const routes: Routes = [
     path: 'edit/:id',
     component: EditComponent,
     canActivate: [AuthGuard]
-  }
+  },
+  { path: 'dashboard', component: DashboardComponent },
+  { path: 'properties', component: PropertiesComponent },
+  { path: 'add-property', component: AddPropertyComponent },
+  { path: 'my-listings', component: MyListingsComponent },
+  { path: '', redirectTo: '/dashboard', pathMatch: 'full' },
 ];
 
 @NgModule({

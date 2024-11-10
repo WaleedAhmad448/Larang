@@ -1,0 +1,16 @@
+<form (ngSubmit)="addProperty()">
+    <h1>Add Property</h1>
+    <div>
+        <label>Title:</label>
+        <input type="text" [(ngModel)]="property.title" name="title" required>
+    </div>
+    <div>
+        <label>Price:</label>
+        <input type="number" [(ngModel)]="property.price" name="price" required>
+    </div>
+    <div>
+        <label>Description:</label>
+        <textarea [(ngModel)]="property.description" name="description" required></textarea>
+    </div>
+    <button type="submit">Add Property</button>
+</form>

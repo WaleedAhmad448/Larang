@@ -41,4 +41,11 @@ Route::group(['middleware' => ['jwt.verify']], function(){
     // route to update, modifies record
     Route::patch('updateStudent/{id}', [StudentController::class, 'updateData']);
 
+
+
+Route::get('/properties', [PropertyController::class, 'index']);
+Route::post('/properties', [PropertyController::class, 'store']);
+Route::get('/properties/{id}', [PropertyController::class, 'show']);
+Route::put('/properties/{id}', [PropertyController::class, 'update']);
+Route::delete('/properties/{id}', [PropertyController::class, 'destroy']);
 });
